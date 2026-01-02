@@ -188,12 +188,19 @@ export const messages = {
   async searchUsers(query: string): Promise<SearchUser[]> {
     try {
       const token = auth.getToken();
-      if (!token) return [];
+      if (!token) {
+        console.error('Search users: no token');
+        return [];
+      }
       const response = await fetch(`${MESSAGES_API}?action=search&query=${encodeURIComponent(query)}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Failed to search users');
+      if (!response.ok) {
+        console.error('Search users error response:', data);
+        throw new Error(data.error || 'Failed to search users');
+      }
+      console.log('Search users success:', data.users.length, 'results');
       return data.users;
     } catch (error: any) {
       console.error('Search users error:', error);

@@ -33,15 +33,16 @@ def handler(event: dict, context) -> dict:
         }
     
     try:
-        auth_header = event.get('headers', {}).get('authorization', '')
-        token = auth_header.replace('Bearer ', '') if auth_header else ''
+        headers = event.get('headers', {})
+        auth_header = headers.get('authorization', '') or headers.get('Authorization', '')
+        token = auth_header.replace('Bearer ', '').strip() if auth_header else ''
         user_id = parse_token(token)
         
         if not user_id:
             return {
                 'statusCode': 401,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'error': 'Unauthorized'})
+                'body': json.dumps({'error': 'Unauthorized', 'debug': f'Token: {token[:20] if token else "empty"}'})
             }
         
         conn = get_db_connection()

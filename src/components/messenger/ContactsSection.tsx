@@ -25,18 +25,31 @@ export function ContactsSection({
 }: ContactsSectionProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchUser[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
-    if (searchQuery) {
+    if (searchQuery.trim()) {
+      setIsSearching(true);
       const timer = setTimeout(async () => {
-        const results = await onSearchUsers(searchQuery);
-        setSearchResults(results);
+        try {
+          const results = await onSearchUsers(searchQuery.trim());
+          setSearchResults(results);
+        } catch (error) {
+          console.error('Search error:', error);
+          setSearchResults([]);
+        } finally {
+          setIsSearching(false);
+        }
       }, 500);
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+        setIsSearching(false);
+      };
     } else {
       setSearchResults([]);
+      setIsSearching(false);
     }
-  }, [searchQuery]);
+  }, [searchQuery, onSearchUsers]);
 
   const handleAddContact = async (username: string) => {
     await onAddContact(username);
@@ -60,9 +73,24 @@ export function ContactsSection({
       </div>
 
       <ScrollArea className="flex-1 p-6">
-        {searchQuery && searchResults.length > 0 && (
+        {isSearching && (
+          <div className="text-center py-8">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Поиск...</p>
+          </div>
+        )}
+        
+        {!isSearching && searchQuery && searchResults.length === 0 && (
+          <div className="text-center py-8 text-muted-foreground">
+            <Icon name="SearchX" size={48} className="mx-auto mb-4 opacity-50" />
+            <p>Пользователи не найдены</p>
+            <p className="text-sm mt-2">Попробуйте другой запрос</p>
+          </div>
+        )}
+        
+        {!isSearching && searchQuery && searchResults.length > 0 && (
           <div className="mb-8">
-            <h3 className="text-sm font-semibold text-muted-foreground mb-4">РЕЗУЛЬТАТЫ ПОИСКА</h3>
+            <h3 className="text-sm font-semibold text-muted-foreground mb-4">РЕЗУЛЬТАТЫ ПОИСКА ({searchResults.length})</h3>
             <div className="grid gap-4">
               {searchResults.map((user) => (
                 <Card key={user.id} className="p-4 flex items-center justify-between hover-lift">
@@ -96,8 +124,9 @@ export function ContactsSection({
           </div>
         )}
 
-        <div>
-          <h3 className="text-sm font-semibold text-muted-foreground mb-4">МОИ КОНТАКТЫ</h3>
+        {!isSearching && (
+          <div>
+            <h3 className="text-sm font-semibold text-muted-foreground mb-4">МОИ КОНТАКТЫ</h3>
           {contacts.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <Icon name="Users" size={64} className="mx-auto mb-4 opacity-50" />
@@ -138,7 +167,8 @@ export function ContactsSection({
               ))}
             </div>
           )}
-        </div>
+          </div>
+        )}
       </ScrollArea>
     </div>
   );
