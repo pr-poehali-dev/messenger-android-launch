@@ -101,30 +101,18 @@ export default function Index() {
   };
 
   const loadChats = async () => {
-    try {
-      const data = await messagesApi.getChats();
-      setChats(data);
-    } catch (error: any) {
-      toast({ title: 'Ошибка', description: error.message, variant: 'destructive' });
-    }
+    const data = await messagesApi.getChats();
+    setChats(data);
   };
 
   const loadContacts = async () => {
-    try {
-      const data = await messagesApi.getContacts();
-      setContacts(data);
-    } catch (error: any) {
-      toast({ title: 'Ошибка', description: error.message, variant: 'destructive' });
-    }
+    const data = await messagesApi.getContacts();
+    setContacts(data);
   };
 
   const loadMessages = async (chatId: number) => {
-    try {
-      const data = await messagesApi.getMessages(chatId);
-      setMessages(data);
-    } catch (error: any) {
-      toast({ title: 'Ошибка', description: error.message, variant: 'destructive' });
-    }
+    const data = await messagesApi.getMessages(chatId);
+    setMessages(data);
   };
 
   const handleSendMessage = async () => {
@@ -146,12 +134,8 @@ export default function Index() {
       return;
     }
     
-    try {
-      const data = await messagesApi.searchUsers(searchQuery);
-      setSearchResults(data);
-    } catch (error: any) {
-      toast({ title: 'Ошибка', description: error.message, variant: 'destructive' });
-    }
+    const data = await messagesApi.searchUsers(searchQuery);
+    setSearchResults(data);
   };
 
   const handleAddContact = async (username: string) => {

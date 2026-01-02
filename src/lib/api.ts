@@ -53,44 +53,63 @@ export interface SearchUser {
 
 export const auth = {
   async register(username: string, email: string, password: string, display_name: string) {
-    const response = await fetch(AUTH_API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'register', username, email, password, display_name })
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'Registration failed');
-    if (data.token) localStorage.setItem(TOKEN_KEY, data.token);
-    return data;
+    try {
+      const response = await fetch(AUTH_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'register', username, email, password, display_name })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Registration failed');
+      if (data.token) localStorage.setItem(TOKEN_KEY, data.token);
+      return data;
+    } catch (error: any) {
+      if (error.message.includes('fetch')) {
+        throw new Error('Не удалось подключиться к серверу');
+      }
+      throw error;
+    }
   },
 
   async login(username: string, password: string) {
-    const response = await fetch(AUTH_API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'login', username, password })
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'Login failed');
-    if (data.token) localStorage.setItem(TOKEN_KEY, data.token);
-    return data;
+    try {
+      const response = await fetch(AUTH_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'login', username, password })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Login failed');
+      if (data.token) localStorage.setItem(TOKEN_KEY, data.token);
+      return data;
+    } catch (error: any) {
+      if (error.message.includes('fetch')) {
+        throw new Error('Не удалось подключиться к серверу');
+      }
+      throw error;
+    }
   },
 
   async verify() {
     const token = localStorage.getItem(TOKEN_KEY);
     if (!token) throw new Error('No token');
     
-    const response = await fetch(AUTH_API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'verify', token })
-    });
-    const data = await response.json();
-    if (!response.ok) {
+    try {
+      const response = await fetch(AUTH_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'verify', token })
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        localStorage.removeItem(TOKEN_KEY);
+        throw new Error(data.error || 'Verification failed');
+      }
+      return data;
+    } catch (error: any) {
       localStorage.removeItem(TOKEN_KEY);
-      throw new Error(data.error || 'Verification failed');
+      throw new Error('No token');
     }
-    return data;
   },
 
   logout() {
@@ -104,23 +123,35 @@ export const auth = {
 
 export const messages = {
   async getChats(): Promise<Chat[]> {
-    const token = auth.getToken();
-    const response = await fetch(`${MESSAGES_API}?action=chats`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'Failed to get chats');
-    return data.chats;
+    try {
+      const token = auth.getToken();
+      if (!token) return [];
+      const response = await fetch(`${MESSAGES_API}?action=chats`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to get chats');
+      return data.chats;
+    } catch (error: any) {
+      console.error('Get chats error:', error);
+      return [];
+    }
   },
 
   async getMessages(chatId: number): Promise<Message[]> {
-    const token = auth.getToken();
-    const response = await fetch(`${MESSAGES_API}?action=messages&chat_id=${chatId}`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'Failed to get messages');
-    return data.messages;
+    try {
+      const token = auth.getToken();
+      if (!token) return [];
+      const response = await fetch(`${MESSAGES_API}?action=messages&chat_id=${chatId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to get messages');
+      return data.messages;
+    } catch (error: any) {
+      console.error('Get messages error:', error);
+      return [];
+    }
   },
 
   async sendMessage(chatId: number, text: string): Promise<Message> {
@@ -139,23 +170,35 @@ export const messages = {
   },
 
   async getContacts(): Promise<Contact[]> {
-    const token = auth.getToken();
-    const response = await fetch(`${MESSAGES_API}?action=contacts`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'Failed to get contacts');
-    return data.contacts;
+    try {
+      const token = auth.getToken();
+      if (!token) return [];
+      const response = await fetch(`${MESSAGES_API}?action=contacts`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to get contacts');
+      return data.contacts;
+    } catch (error: any) {
+      console.error('Get contacts error:', error);
+      return [];
+    }
   },
 
   async searchUsers(query: string): Promise<SearchUser[]> {
-    const token = auth.getToken();
-    const response = await fetch(`${MESSAGES_API}?action=search&query=${encodeURIComponent(query)}`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'Failed to search users');
-    return data.users;
+    try {
+      const token = auth.getToken();
+      if (!token) return [];
+      const response = await fetch(`${MESSAGES_API}?action=search&query=${encodeURIComponent(query)}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to search users');
+      return data.users;
+    } catch (error: any) {
+      console.error('Search users error:', error);
+      return [];
+    }
   },
 
   async addContact(username: string) {
