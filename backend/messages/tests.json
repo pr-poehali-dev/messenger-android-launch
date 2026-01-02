@@ -1,0 +1,30 @@
+{
+  "tests": [
+    {
+      "name": "Get user chats",
+      "method": "GET",
+      "path": "/?action=chats",
+      "headers": {
+        "Authorization": "Bearer 1:test"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "chats": []
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Search users",
+      "method": "GET",
+      "path": "/?action=search&query=test",
+      "headers": {
+        "Authorization": "Bearer 1:test"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "users": []
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
